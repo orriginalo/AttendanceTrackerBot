@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./database.db:/database.db
+      - ./database.db:/app/database.db
     env_file:
       - .env
     environment:

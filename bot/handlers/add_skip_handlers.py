@@ -59,28 +59,43 @@ async def pair_number_handler(call: CallbackQuery, callback_data: PairNumberCBD,
     )
 
     await state.set_state(AddingSkipSG.SUBJECT_NAME)
-    await call.message.answer(
+    sent = await call.message.answer(
         "[3/4] ✍️ Какой предмет?",
     )
+    await state.update_data(subject_msg_id=sent.message_id)
 
 
 @router.message(AddingSkipSG.SUBJECT_NAME)
 async def subject_name_handler(msg: Message, state: FSMContext):
     await state.update_data(subject_name=msg.text)
 
-    await msg.edit_text(text=f"[3/4] ✍️ Какой предмет? - <b>{msg.text}</b>", reply_markup=Keyboard.get_empty_inline_kb())
+    msg_id = (await state.get_data())["subject_msg_id"]
+
+    await msg.bot.edit_message_text(
+        text=f"[3/4] ✍️ Какой предмет? - <b>{msg.text}</b>",
+        reply_markup=Keyboard.get_empty_inline_kb(),
+        chat_id=msg.chat.id,
+        message_id=msg_id,
+    )
+    await msg.delete()
 
     await state.set_state(AddingSkipSG.REASON)
-    await msg.answer(
-        "[4/4] 📝 Почему пропустил?",
+    sent = await msg.answer(
+        "[4/4] 📝 Почему пропустил?\n<i>Выбери из списка ниже или напиши свое</i>",
         reply_markup=Keyboard.get_reason_kb(),
     )
+    await state.update_data(reason_msg_id=sent.message_id)
 
 
 @router.callback_query(AddingSkipSG.REASON, ReasonCBD.filter())
 async def reason_handler(call: CallbackQuery, callback_data: ReasonCBD, state: FSMContext):
     await call.answer(" ")
     await state.update_data(reason=settings.REASONS[callback_data.reason_idx])
+
+    await call.message.edit_text(
+        text=f"[4/4] 📝 Почему пропустил? - <b>{settings.REASONS[callback_data.reason_idx]}</b>",
+        reply_markup=Keyboard.get_empty_inline_kb(),
+    )
 
     data = await StatesSerializer.get_adding_skip_schema(state)
     async with session_factory() as session:
@@ -98,6 +113,16 @@ async def reason_handler(call: CallbackQuery, callback_data: ReasonCBD, state: F
 @router.message(AddingSkipSG.REASON, F.text)
 async def self_reason_handler(msg: Message, state: FSMContext):
     await state.update_data(reason=msg.text)
+
+    msg_id = (await state.get_data())["reason_msg_id"]
+
+    await msg.bot.edit_message_text(
+        text=f"[4/4] 📝 Почему пропустил? - <b>{msg.text}</b>",
+        reply_markup=Keyboard.get_empty_inline_kb(),
+        chat_id=msg.chat.id,
+        message_id=msg_id,
+    )
+    await msg.delete()
 
     data = await StatesSerializer.get_adding_skip_schema(state)
     async with session_factory() as session:

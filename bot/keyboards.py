@@ -73,6 +73,4 @@ class Keyboard:
         for i, reason in enumerate(settings.REASONS):
             kb.row(IKB(text=reason, callback_data=ReasonCBD(reason_idx=i).pack()))
 
-        kb.row(IKB(text="✍️ Написать свое", callback_data="write_self_reason"))
-
         return kb.as_markup()

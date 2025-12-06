@@ -1,0 +1,14 @@
+services:
+  bot:
+    container_name: attendancebot_bot
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./database.db:/database.db
+    env_file:
+      - .env
+    environment:
+      - TZ=Europe/Samara
+    restart: unless-stopped
+    

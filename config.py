@@ -29,7 +29,7 @@ class ProjectSettings:
         }
     )
 
-    REASONS: list = field(default_factory=lambda: ["Болел", "Не захотел", "Дела"])
+    REASONS: list = field(default_factory=lambda: ["Болел", "Впадлу", "Дела"])
 
 
 settings: ProjectSettings = ProjectSettings()

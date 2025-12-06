@@ -35,8 +35,6 @@ class StatesSerializer:
         )
 
 
-from collections import defaultdict
-
 MONTH_NAMES = {
     1: "январь",
     2: "февраль",
@@ -71,9 +69,9 @@ def format_skips(skips: list[Skip]) -> str:
             # сортировка по дате + номеру пары
             for skip in sorted(grouped[year][month], key=lambda s: (s.date, s.pair_number)):
                 date_str = skip.date.strftime("%d.%m")
-                pair = skip.pair_number
+                # pair = skip.pair_number
 
-                result += f"      • <b>{date_str}</b> - <i>{skip.subject}</i> ({pair}) — {skip.reason}\n"
+                result += f"      • <b>{date_str}</b> - <i>{skip.subject}</i> — {skip.reason}\n"
         result += "\n"
 
     return result.strip()

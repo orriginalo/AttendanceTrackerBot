@@ -52,29 +52,44 @@ MONTH_NAMES = {
 
 
 def format_skips(skips: list[Skip]) -> str:
-    grouped = defaultdict(lambda: defaultdict(list))
+    # Группировка данных (оставляем вашу логику)
+    grouped = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
     for skip in skips:
-        grouped[skip.date.year][skip.date.month].append(skip)
+        month = skip.date.month
+        semester = 1 if (9 <= month <= 12) else 2
+        grouped[semester][skip.date.year][month].append(skip)
 
-    result = ""
+    if not skips:
+        return "🤷‍♂️ Пропусков не найдено."
 
-    for year in sorted(grouped.keys()):
-        result += f"<b>{year} год</b>\n"
+    sections = []
 
-        for month in sorted(grouped[year].keys()):
-            month_name = MONTH_NAMES[month]
-            result += f"  └ <b><i>{month_name}</i></b>\n"
+    for semester in sorted(grouped.keys()):
+        # Заголовок семестра с разделителем
+        sem_header = f"<b>{semester} СЕМЕСТР</b>"
+        semester_text = [f"🎓 {sem_header}", "—" * 22]
 
-            # сортировка по дате + номеру пары
-            for skip in sorted(grouped[year][month], key=lambda s: (s.date, s.pair_number)):
-                date_str = skip.date.strftime("%d.%m")
-                # pair = skip.pair_number
+        for year in sorted(grouped[semester].keys()):
+            for month in sorted(grouped[semester][year].keys()):
+                month_name = MONTH_NAMES[month].capitalize()
+                semester_text.append(f"\n🗓 <b>{month_name} {year}</b>")
 
-                result += f"      • <b>{date_str}</b> - <i>{skip.subject}</i> — {skip.reason}\n"
-        result += "\n"
+                # Сортировка по дате и номеру пары
+                sorted_skips = sorted(grouped[semester][year][month], key=lambda s: (s.date, s.pair_number))
 
-    return result.strip()
+                for skip in sorted_skips:
+                    date_str = skip.date.strftime("%d.%m")
+                    # Добавляем номер пары. Используем [ ] или просто цифру с символом
+                    # Например: [2] или 2️⃣
+                    pair_info = f"[{skip.pair_number}]"
+
+                    line = f"  ▫️ {pair_info} <code>{date_str}</code> — <b>{skip.subject}</b>\n      └ <i>{skip.reason}</i>"
+                    semester_text.append(line)
+
+        sections.append("\n".join(semester_text))
+
+    return "\n\n".join(sections).strip()
 
 
 def get_date_by_when_pair(when_pair: WhenPair):

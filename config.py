@@ -14,7 +14,7 @@ class ProjectSettings:
 
     @property
     def DB_URL(self) -> str:
-        return f"sqlite+aiosqlite:///{self.DB_FILENAME}"
+        return f"sqlite+aiosqlite:///./data/{self.DB_FILENAME}"
 
     PAIR_TIMES: dict = field(
         default_factory=lambda: {

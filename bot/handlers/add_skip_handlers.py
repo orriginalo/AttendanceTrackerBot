@@ -3,10 +3,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
-from bot.database.queries import add_skip
+from bot.database.queries import add_skip, get_subjects
 from bot.enums import WhenPair
 from .utils import send_main_menu
-from bot.keyboards import Keyboard, PairNumberCBD, ReasonCBD, WhenPairCBD
+from bot.keyboards import Keyboard, PairNumberCBD, ReasonCBD, WhenPairCBD, SubjectCBD
 from bot.utils import StatesSerializer, get_date_by_when_pair
 from config import settings
 from bot.database.core import session_factory
@@ -58,10 +58,46 @@ async def pair_number_handler(call: CallbackQuery, callback_data: PairNumberCBD,
     )
 
     await state.set_state(AddingSkipSG.SUBJECT_NAME)
+    async with session_factory() as session:
+        subjects = await get_subjects(session, call.from_user.id)
+
+    await state.update_data(subjects=subjects)
+
+    text = "[3/4] ✍️ Какой предмет?"
+    if subjects:
+        text += "\n<i>Можно выбрать из списка ниже или написать свой</i>"
+
     sent = await call.message.answer(
-        "[3/4] ✍️ Какой предмет?",
+        text,
+        reply_markup=Keyboard.get_subjects_kb(subjects) if subjects else None,
     )
     await state.update_data(subject_msg_id=sent.message_id)
+
+
+@router.callback_query(AddingSkipSG.SUBJECT_NAME, SubjectCBD.filter())
+async def subject_from_list_handler(call: CallbackQuery, callback_data: SubjectCBD, state: FSMContext):
+    await call.answer(" ")
+    data = await state.get_data()
+    subjects = data.get("subjects", [])
+
+    if callback_data.subject_idx >= len(subjects):
+        await call.answer("Этого предмета уже нет в списке", show_alert=True)
+        return
+
+    subject = subjects[callback_data.subject_idx]
+    await state.update_data(subject_name=subject)
+
+    await call.message.edit_text(
+        text=f"[3/4] ✍️ Какой предмет? - <b>{subject}</b>",
+        reply_markup=Keyboard.get_empty_inline_kb(),
+    )
+
+    await state.set_state(AddingSkipSG.REASON)
+    sent = await call.message.answer(
+        "[4/4] 📝 Почему пропустил?\n<i>Выбери из списка ниже или напиши свое</i>",
+        reply_markup=Keyboard.get_reason_kb(),
+    )
+    await state.update_data(reason_msg_id=sent.message_id)
 
 
 @router.message(AddingSkipSG.SUBJECT_NAME)

@@ -19,6 +19,10 @@ class ReasonCBD(CallbackData, prefix="reason"):
     reason_idx: int
 
 
+class SubjectCBD(CallbackData, prefix="subject"):
+    subject_idx: int
+
+
 class Keyboard:
     @staticmethod
     def get_back_to_menu_kb():
@@ -74,3 +78,24 @@ class Keyboard:
             kb.row(IKB(text=reason, callback_data=ReasonCBD(reason_idx=i).pack()))
 
         return kb.as_markup()
+
+    @staticmethod
+    def get_subjects_kb(subjects: list[str]):
+        kb = InlineKeyboardBuilder()
+        for i, subject in enumerate(subjects):
+            kb.row(IKB(text=subject, callback_data=SubjectCBD(subject_idx=i).pack()))
+
+        return kb.as_markup()
+
+    @staticmethod
+    def get_stats_kb():
+        return IKMR(
+            inline_keyboard=[
+                [
+                    IKB(text="➕ Добавить пропуск", callback_data="add_skip"),
+                ],
+                [
+                    IKB(text="« Главное меню", callback_data="to_main_menu"),
+                ],
+            ]
+        )

@@ -8,9 +8,11 @@ load_dotenv(override=True)
 
 @dataclass
 class ProjectSettings:
-    BOT_TOKEN: str = os.getenv("BOT_TOKEN")
-    OWNER_ID: int = int(os.getenv("OWNER_ID"))
-    DB_FILENAME: str = os.getenv("DB_FILENAME")
+    BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
+    OWNER_ID: int = int(os.getenv("OWNER_ID", ""))
+    DB_FILENAME: str = os.getenv("DB_FILENAME", "")
+
+    TG_HTTP_PROXY: str = os.getenv("TG_HTTP_PROXY", "")
 
     @property
     def DB_URL(self) -> str:

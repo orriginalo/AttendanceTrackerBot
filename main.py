@@ -3,6 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.client.session.aiohttp import AiohttpSession
 
 from bot.database.core import create_tables
 from bot.handlers.add_skip_handlers import router as add_skip_router
@@ -12,7 +13,11 @@ from bot.handlers.show_statistics_handlers import router as show_stats_router
 from config import settings
 
 
-bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(
+    token=settings.BOT_TOKEN,
+    session=AiohttpSession(proxy=settings.TG_HTTP_PROXY),
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+)
 dp = Dispatcher()
 
 
